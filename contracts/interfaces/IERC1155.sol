@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-pragma solidity 0.7.1;
+pragma solidity 0.8.3;
 
 /**
     @title ERC-1155 Multi Token Standard

@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-pragma solidity 0.7.1;
+pragma solidity 0.8.3;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./interfaces/IVoucherKernel.sol";
 import "./interfaces/IERC20WithPermit.sol";
@@ -25,11 +24,7 @@ contract BosonRouter is
     Ownable
 {
     using Address for address payable;
-    using SafeMath for uint256;
-
     mapping(address => uint256) public correlationIds; // whenever a seller or a buyer interacts with the smart contract, a personal txID is emitted from an event.
-
-    using SafeMath for uint256;
 
     address public cashierAddress;
     address public voucherKernel;
@@ -158,10 +153,10 @@ contract BosonRouter is
         override
         whenNotPaused
     {
-        notAboveETHLimit(metadata[2].mul(metadata[5]));
-        notAboveETHLimit(metadata[3].mul(metadata[5]));
-        notAboveETHLimit(metadata[4].mul(metadata[5]));
-        require(metadata[3].mul(metadata[5]) == msg.value, "IN_FU"); //invalid funds
+        notAboveETHLimit(metadata[2] * metadata[5]);
+        notAboveETHLimit(metadata[3] * metadata[5]);
+        notAboveETHLimit(metadata[4] * metadata[5]);
+        require(metadata[3] * metadata[5] == msg.value, "IN_FU"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         uint256 tokenIdSupply =
@@ -186,7 +181,7 @@ contract BosonRouter is
         uint256 amount = ICashier(cashierAddress).getEscrowAmount(msg.sender);
         ICashier(cashierAddress).updateEscrowAmount(
             msg.sender,
-            amount.add(msg.value)
+            amount + msg.value
         );
 
         payable(cashierAddress).sendValue(msg.value);
@@ -212,11 +207,11 @@ contract BosonRouter is
     ) external override whenNotPaused {
         notZeroAddress(_tokenPriceAddress);
         notZeroAddress(_tokenDepositAddress);
-        notAboveTokenLimit(_tokenPriceAddress, metadata[2].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[3].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[4].mul(metadata[5]));
+        notAboveTokenLimit(_tokenPriceAddress, metadata[2] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[3] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[4] * metadata[5]);
 
-        require(metadata[3].mul(metadata[5]) == _tokensSent, "IN_FU"); //invalid funds
+        require(metadata[3] * metadata[5] == _tokensSent, "IN_FU"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         IERC20WithPermit(_tokenDepositAddress).permit(
@@ -262,7 +257,7 @@ contract BosonRouter is
         ICashier(cashierAddress).updateEscrowTokensAmount(
             _tokenDepositAddress,
             msg.sender,
-            amount.add(_tokensSent)
+            amount + _tokensSent
         );
 
         emit LogOrderCreated(
@@ -284,11 +279,11 @@ contract BosonRouter is
         uint256[] calldata metadata
     ) external override whenNotPaused {
         notZeroAddress(_tokenDepositAddress);
-        notAboveETHLimit(metadata[2].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[3].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[4].mul(metadata[5]));
+        notAboveETHLimit(metadata[2] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[3] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[4] * metadata[5]);
 
-        require(metadata[3].mul(metadata[5]) == _tokensSent, "IN_FU"); //invalid funds
+        require(metadata[3] * metadata[5] == _tokensSent, "IN_FU"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         IERC20WithPermit(_tokenDepositAddress).permit(
@@ -334,7 +329,7 @@ contract BosonRouter is
         ICashier(cashierAddress).updateEscrowTokensAmount(
             _tokenDepositAddress,
             msg.sender,
-            amount.add(_tokensSent)
+            amount + _tokensSent
         );
 
         emit LogOrderCreated(
@@ -351,11 +346,11 @@ contract BosonRouter is
         uint256[] calldata metadata
     ) external payable override whenNotPaused {
         notZeroAddress(_tokenPriceAddress);
-        notAboveTokenLimit(_tokenPriceAddress, metadata[2].mul(metadata[5]));
-        notAboveETHLimit(metadata[3].mul(metadata[5]));
-        notAboveETHLimit(metadata[4].mul(metadata[5]));
+        notAboveTokenLimit(_tokenPriceAddress, metadata[2] * metadata[5]);
+        notAboveETHLimit(metadata[3] * metadata[5]);
+        notAboveETHLimit(metadata[4] * metadata[5]);
 
-        require(metadata[3].mul(metadata[5]) == msg.value, "IN_FU"); //invalid funds
+        require(metadata[3] * metadata[5] == msg.value, "IN_FU"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         uint256 tokenIdSupply =
@@ -378,7 +373,7 @@ contract BosonRouter is
         uint256 amount = ICashier(cashierAddress).getEscrowAmount(msg.sender);
         ICashier(cashierAddress).updateEscrowAmount(
             msg.sender,
-            amount.add(msg.value)
+            amount + msg.value
         );
 
         payable(cashierAddress).sendValue(msg.value);
@@ -409,7 +404,7 @@ contract BosonRouter is
         //checks
         (uint256 price, , uint256 depositBu) =
             IVoucherKernel(voucherKernel).getOrderCosts(_tokenIdSupply);
-        require(price.add(depositBu) == weiReceived, "IN_FU"); //invalid funds
+        require(price + depositBu == weiReceived, "IN_FU"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         IVoucherKernel(voucherKernel).fillOrder(
@@ -423,7 +418,7 @@ contract BosonRouter is
         uint256 amount = ICashier(cashierAddress).getEscrowAmount(msg.sender);
         ICashier(cashierAddress).updateEscrowAmount(
             msg.sender,
-            amount.add(weiReceived)
+            amount + weiReceived
         );
 
         payable(cashierAddress).sendValue(msg.value);
@@ -444,7 +439,7 @@ contract BosonRouter is
 
         (uint256 price, uint256 depositBu) =
             IVoucherKernel(voucherKernel).getBuyerOrderCosts(_tokenIdSupply);
-        require(_tokensSent.sub(depositBu) == price, "IN_FU"); //invalid funds
+        require(_tokensSent - depositBu == price, "IN_FU"); //invalid funds
 
         address tokenPriceAddress =
             IVoucherKernel(voucherKernel).getVoucherPriceToken(_tokenIdSupply);
@@ -499,7 +494,7 @@ contract BosonRouter is
         ICashier(cashierAddress).updateEscrowTokensAmount(
             tokenPriceAddress,
             msg.sender,
-            amount.add(price)
+            amount + price
         );
 
         //record funds in escrowTokens for the Deposit token...
@@ -510,7 +505,7 @@ contract BosonRouter is
         ICashier(cashierAddress).updateEscrowTokensAmount(
             tokenDepositAddress,
             msg.sender,
-            amount.add(depositBu)
+            amount + depositBu
         );
     }
 
@@ -526,7 +521,7 @@ contract BosonRouter is
 
         (uint256 price, uint256 depositBu) =
             IVoucherKernel(voucherKernel).getBuyerOrderCosts(_tokenIdSupply);
-        require(_tokensSent.sub(depositBu) == price, "IN_FU"); //invalid funds
+        require(_tokensSent - depositBu == price, "IN_FU"); //invalid funds
 
         address tokenPriceAddress =
             IVoucherKernel(voucherKernel).getVoucherPriceToken(_tokenIdSupply);
@@ -571,7 +566,7 @@ contract BosonRouter is
         ICashier(cashierAddress).updateEscrowTokensAmount(
             tokenPriceAddress,
             msg.sender,
-            amount.add(_tokensSent)
+            amount + _tokensSent
         );
     }
 
@@ -623,7 +618,7 @@ contract BosonRouter is
         uint256 amount = ICashier(cashierAddress).getEscrowAmount(msg.sender);
         ICashier(cashierAddress).updateEscrowAmount(
             msg.sender,
-            amount.add(msg.value)
+            amount + msg.value
         );
 
         //record funds in escrowTokens ...
@@ -634,7 +629,7 @@ contract BosonRouter is
         ICashier(cashierAddress).updateEscrowTokensAmount(
             tokenDepositAddress,
             msg.sender,
-            amount.add(_tokensDeposit)
+            amount + _tokensDeposit
         );
 
         payable(cashierAddress).sendValue(msg.value);
@@ -686,7 +681,7 @@ contract BosonRouter is
         uint256 amount = ICashier(cashierAddress).getEscrowAmount(msg.sender);
         ICashier(cashierAddress).updateEscrowAmount(
             msg.sender,
-            amount.add(msg.value)
+            amount + msg.value
         );
 
         //record funds in escrowTokens ...
@@ -697,7 +692,7 @@ contract BosonRouter is
         ICashier(cashierAddress).updateEscrowTokensAmount(
             tokenPriceAddress,
             msg.sender,
-            amount.add(price)
+            amount + price
         );
 
         payable(cashierAddress).sendValue(msg.value);
@@ -721,7 +716,7 @@ contract BosonRouter is
         ICashier(cashierAddress).withdrawDepositsSe(
             _tokenIdSupply,
             _burnedSupplyQty,
-            msg.sender
+            payable(msg.sender)
         );
 
         correlationIds[msg.sender]++;
@@ -790,18 +785,18 @@ contract BosonRouter is
             IVoucherKernel(voucherKernel).getBuyerOrderCosts(tokenSupplyId);
 
         if (paymentType == ETHETH) {
-            uint256 totalAmount = price.add(depositBu);
+            uint256 totalAmount = price + depositBu;
 
             amount = ICashier(cashierAddress).getEscrowAmount(_from);
             ICashier(cashierAddress).updateEscrowAmount(
                 _from,
-                amount.sub(totalAmount)
+                amount - totalAmount
             );
 
             amount = ICashier(cashierAddress).getEscrowAmount(_to);
             ICashier(cashierAddress).updateEscrowAmount(
                 _to,
-                amount.add(totalAmount)
+                amount + totalAmount
             );
         }
 
@@ -809,11 +804,11 @@ contract BosonRouter is
             amount = ICashier(cashierAddress).getEscrowAmount(_from);
             ICashier(cashierAddress).updateEscrowAmount(
                 _from,
-                amount.sub(price)
+                amount - price
             );
 
             amount = ICashier(cashierAddress).getEscrowAmount(_to);
-            ICashier(cashierAddress).updateEscrowAmount(_to, amount.add(price));
+            ICashier(cashierAddress).updateEscrowAmount(_to, amount + price);
 
             tokenAddress = IVoucherKernel(voucherKernel).getVoucherDepositToken(
                 tokenSupplyId
@@ -826,7 +821,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _from,
-                amount.sub(depositBu)
+                amount - depositBu
             );
 
             amount = ICashier(cashierAddress).getEscrowTokensAmount(
@@ -836,7 +831,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _to,
-                amount.add(depositBu)
+                amount + depositBu
             );
         }
 
@@ -852,7 +847,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _from,
-                amount.sub(price)
+                amount - price
             );
 
             amount = ICashier(cashierAddress).getEscrowTokensAmount(
@@ -862,19 +857,19 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _to,
-                amount.add(price)
+                amount + price
             );
 
             amount = ICashier(cashierAddress).getEscrowAmount(_from);
             ICashier(cashierAddress).updateEscrowAmount(
                 _from,
-                amount.sub(depositBu)
+                amount - depositBu
             );
 
             amount = ICashier(cashierAddress).getEscrowAmount(_to);
             ICashier(cashierAddress).updateEscrowAmount(
                 _to,
-                amount.add(depositBu)
+                amount + depositBu
             );
         }
 
@@ -890,7 +885,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _from,
-                amount.sub(price)
+                amount - price
             );
 
             amount = ICashier(cashierAddress).getEscrowTokensAmount(
@@ -900,7 +895,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _to,
-                amount.add(price)
+                amount + price
             );
 
             tokenAddress = IVoucherKernel(voucherKernel).getVoucherDepositToken(
@@ -914,7 +909,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _from,
-                amount.sub(depositBu)
+                amount - depositBu
             );
 
             amount = ICashier(cashierAddress).getEscrowTokensAmount(
@@ -924,7 +919,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenAddress,
                 _to,
-                amount.add(depositBu)
+                amount + depositBu
             );
         }
 
@@ -978,18 +973,18 @@ contract BosonRouter is
             depositSe = IVoucherKernel(voucherKernel).getSellerDeposit(
                 _tokenSupplyId
             );
-            totalAmount = depositSe.mul(_value);
+            totalAmount = depositSe * _value;
 
             amount = ICashier(cashierAddress).getEscrowAmount(_from);
             ICashier(cashierAddress).updateEscrowAmount(
                 _from,
-                amount.sub(totalAmount)
+                amount - totalAmount
             );
 
             amount = ICashier(cashierAddress).getEscrowAmount(_to);
             ICashier(cashierAddress).updateEscrowAmount(
                 _to,
-                amount.add(totalAmount)
+                amount + totalAmount
             );
         }
 
@@ -1002,7 +997,7 @@ contract BosonRouter is
             depositSe = IVoucherKernel(voucherKernel).getSellerDeposit(
                 _tokenSupplyId
             );
-            totalAmount = depositSe.mul(_value);
+            totalAmount = depositSe * _value;
 
             amount = ICashier(cashierAddress).getEscrowTokensAmount(
                 tokenDepositAddress,
@@ -1011,7 +1006,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenDepositAddress,
                 _from,
-                amount.sub(totalAmount)
+                amount - totalAmount
             );
 
             amount = ICashier(cashierAddress).getEscrowTokensAmount(
@@ -1021,7 +1016,7 @@ contract BosonRouter is
             ICashier(cashierAddress).updateEscrowTokensAmount(
                 tokenDepositAddress,
                 _to,
-                amount.add(totalAmount)
+                amount + totalAmount
             );
         }
 

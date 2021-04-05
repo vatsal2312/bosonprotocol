@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-pragma solidity 0.7.1;
+pragma solidity 0.8.3;
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./interfaces/IERC1155.sol";
 import "./interfaces/IERC165.sol";
 import "./interfaces/IERC721.sol";
@@ -27,7 +26,6 @@ import "./UsingHelpers.sol";
 // solhint-disable-next-line
 contract VoucherKernel is IVoucherKernel, Ownable, Pausable, UsingHelpers {
     using Address for address;
-    using SafeMath for uint256;
 
     //AssetRegistry assetRegistry;
     address public tokensContract;
@@ -71,10 +69,10 @@ contract VoucherKernel is IVoucherKernel, Ownable, Pausable, UsingHelpers {
 
     //ID reqs
     mapping(uint256 => uint256) public typeCounters; //counter for ID of a particular type of NFT
-    uint256 public constant MASK_TYPE = uint256(uint128(~0)) << 128; //the type mask in the upper 128 bits
+    uint256 public constant MASK_TYPE = uint256(type(uint128).max) << 128; //the type mask in the upper 128 bits
     //1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
-    uint256 public constant MASK_NF_INDEX = uint128(~0); //the non-fungible index mask in the lower 128
+    uint256 public constant MASK_NF_INDEX = type(uint128).max; //the non-fungible index mask in the lower 128
     //0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
 
     uint256 public constant TYPE_NF_BIT = 1 << 255; //the first bit represents an NFT type

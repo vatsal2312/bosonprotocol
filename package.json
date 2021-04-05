@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/bosonprotocol/contracts#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "3.4.0-solc-0.7",
+    "@openzeppelin/contracts": "4.0.0",
     "@truffle/hdwallet-provider": "^1.2.5",
     "axios": "^0.21.1",
     "chai": "^4.2.0",
@@ -50,7 +50,7 @@
     "prettier-plugin-solidity": "^1.0.0-beta.3",
     "solhint": "^3.3.2",
     "solidity-coverage": "^0.7.12",
-    "truffle": "5.1.10",
+    "truffle": "5.3.0",
     "truffle-assertions": "^0.9.2",
     "truffle-contract-size": "^2.0.1",
     "truffle-plugin-verify": "^0.5.2"

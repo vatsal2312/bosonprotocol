@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-pragma solidity 0.7.1;
+pragma solidity 0.8.3;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./interfaces/IERC1155.sol";
@@ -20,7 +19,6 @@ import "./interfaces/IVoucherKernel.sol";
  *  Inspired by: https://github.com/pixowl/sandbox-smart-contracts
  */
 contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
-    using SafeMath for uint256;
     using Address for address;
 
     //min security
@@ -105,8 +103,8 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         );
 
         // SafeMath throws with insufficient funds or if _id is not valid (balance will be 0)
-        balances[_tokenId][_from] = balances[_tokenId][_from].sub(_value);
-        balances[_tokenId][_to] = _value.add(balances[_tokenId][_to]);
+        balances[_tokenId][_from] -= _value;
+        balances[_tokenId][_to] += _value;
 
         IBosonRouter(bosonRouterAddress)._onERC1155Transfer(
             _from,
@@ -316,8 +314,8 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
             );
 
             // SafeMath throws with insufficient funds or if _id is not valid (balance will be 0)
-            balances[tokenId][_from] = balances[tokenId][_from].sub(value);
-            balances[tokenId][_to] = value.add(balances[tokenId][_to]);
+            balances[tokenId][_from] -= value;
+            balances[tokenId][_to] += value;
 
             IBosonRouter(bosonRouterAddress)._onERC1155Transfer(
                 _from,
@@ -555,7 +553,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
     ) internal {
         require(_to != address(0), "UNSPECIFIED_ADDRESS"); //FISSION.code(FISSION.Category.Find, FISSION.Status.NotFound_Unequal_OutOfRange)
 
-        balances[_tokenId][_to] = balances[_tokenId][_to].add(_value);
+        balances[_tokenId][_to] += _value;
         emit TransferSingle(msg.sender, address(0), _to, _tokenId, _value);
 
         _doSafeTransferAcceptanceCheck(
@@ -643,9 +641,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         require(_tokenIds.length == _values.length, "MISMATCHED_ARRAY_LENGTHS"); //hex"28" FISSION.code(FISSION.Category.Find, FISSION.Status.Duplicate_Conflict_Collision)
 
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            balances[_tokenIds[i]][_to] = _values[i].add(
-                balances[_tokenIds[i]][_to]
-            );
+            balances[_tokenIds[i]][_to] += _values[i];
         }
 
         emit TransferBatch(msg.sender, address(0), _to, _tokenIds, _values);
@@ -689,7 +685,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
     ) internal {
         require(_account != address(0), "UNSPECIFIED_ADDRESS"); //"UNSPECIFIED_ADDRESS" FISSION.code(FISSION.Category.Find, FISSION.Status.NotFound_Unequal_OutOfRange)
 
-        balances[_tokenId][_account] = balances[_tokenId][_account].sub(_value);
+        balances[_tokenId][_account] -= _value;
         emit TransferSingle(msg.sender, _account, address(0), _tokenId, _value);
     }
 
@@ -726,8 +722,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         require(_tokenIds.length == _values.length, "MISMATCHED_ARRAY_LENGTHS"); //hex"28" FISSION.code(FISSION.Category.Find, FISSION.Status.Duplicate_Conflict_Collision)
 
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            balances[_tokenIds[i]][_account] = balances[_tokenIds[i]][_account]
-                .sub(_values[i]);
+            balances[_tokenIds[i]][_account] -= _values[i];
         }
 
         emit TransferBatch(
@@ -863,9 +858,12 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
             j /= 10;
         }
         bytes memory bstr = new bytes(len);
-        uint256 k = len - 1;
+        uint k = len;
         while (_i != 0) {
-            bstr[k--] = bytes1(uint8(48 + (_i % 10)));
+            k = k-1;
+            uint8 temp = (48 + uint8(_i - _i / 10 * 10));
+            bytes1 b1 = bytes1(temp);
+            bstr[k] = b1;
             _i /= 10;
         }
         return string(bstr);
