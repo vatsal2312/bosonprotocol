@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.3;
 
-import "./IERC165.sol";
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /// @title ERC-721 Non-Fungible Token Standard
 /// @dev Deviated from standard: external | payable >> public
