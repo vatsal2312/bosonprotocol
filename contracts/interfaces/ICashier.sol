@@ -36,7 +36,7 @@ interface ICashier {
     function withdrawDepositsSe(
         uint256 _tokenIdSupply,
         uint256 _burnedQty,
-        address payable _msgSender
+        address _msgSender
     ) external;
 
     /**

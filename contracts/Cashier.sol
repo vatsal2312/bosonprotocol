@@ -652,7 +652,7 @@ contract Cashier is ICashier, UsingHelpers, ReentrancyGuard, Ownable, Pausable {
     function withdrawDepositsSe(
         uint256 _tokenIdSupply,
         uint256 _burnedQty,
-        address payable _msgSender
+        address _msgSender
     ) external override nonReentrant onlyFromRouter {
         uint256 deposit =
             IVoucherKernel(voucherKernel).getSellerDeposit(_tokenIdSupply);
