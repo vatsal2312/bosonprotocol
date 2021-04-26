@@ -21,6 +21,7 @@
  */
 const HDWalletProvider = require('@truffle/hdwallet-provider')
 const fs = require('fs')
+require("ts-node/register");
 
 require('dotenv').config()
 
@@ -136,6 +137,9 @@ module.exports = {
   mocha: {
     timeout: 120000
   },
+
+  // this is required by truffle to find any ts test files
+  test_file_extension_regexp: /.*\.ts$/,
 
   compilers: {
     solc: {
