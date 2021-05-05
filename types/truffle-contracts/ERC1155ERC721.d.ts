@@ -960,6 +960,7 @@ export interface ERC1155ERC721Instance extends Truffle.ContractInstance {
      * ERC-721 Throws if `_tokenId` is not a valid NFT. URIs are defined in RFC 3986. The URI may point to a JSON file that conforms to the "ERC721 Metadata JSON Schema".
      * A distinct Uniform Resource Identifier (URI) for a given asset.
      * @param _tokenId ID of the token
+     * @param txDetails
      */
     tokenURI(
       _tokenId: number | BN | string,
@@ -1231,4 +1232,6 @@ export interface ERC1155ERC721Instance extends Truffle.ContractInstance {
     event: string,
     callback: (error: Error, event: EventData) => void
   ): Promise<EventData[]>;
+
+    mint(address, number: number, number2: number, param4: any[]) ;
 }
