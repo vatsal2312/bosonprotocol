@@ -22,18 +22,20 @@ let Cashier;
 let BosonRouter;
 let FundLimitsOracle;
 let MockBosonRouter;
+let MinimalForwarder;
 
 const BN = ethers.BigNumber.from;
 
 let users;
 
-describe('Voucher tests', () => {
+describe.only('Voucher tests', () => {
   let contractERC1155ERC721,
     contractVoucherKernel,
     contractCashier,
     contractBosonRouter,
     contractFundLimitsOracle,
-    contractMockBosonRouter;
+    contractMockBosonRouter,
+    contractTrustedForward;
   let tokenSupplyKey1,
     tokenSupplyKey2,
     tokenVoucherKey1,
@@ -52,6 +54,8 @@ describe('Voucher tests', () => {
     ERC1155ERC721 = await ethers.getContractFactory('ERC1155ERC721');
     FundLimitsOracle = await ethers.getContractFactory('FundLimitsOracle');
     MockBosonRouter = await ethers.getContractFactory('MockBosonRouter');
+    MinimalForwarder = await ethers.getContractFactory('MinimalForwarder');
+
   });
 
   async function deployContracts() {
@@ -68,11 +72,14 @@ describe('Voucher tests', () => {
       contractFundLimitsOracle.address,
       contractCashier.address
     );
+    
+    contractTrustedForward = await MinimalForwarder.deploy();
 
     contractMockBosonRouter = await MockBosonRouter.deploy(
       contractVoucherKernel.address,
       contractFundLimitsOracle.address,
-      contractCashier.address
+      contractCashier.address,
+      contractTrustedForward.address
     );
 
     await contractFundLimitsOracle.deployed();
