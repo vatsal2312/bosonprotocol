@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-pragma solidity 0.7.1;
+pragma solidity 0.8.4;
 
 import "../interfaces/IERC20WithPermit.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+//import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
 contract ERC20WithPermit is IERC20WithPermit, Pausable {
-    using SafeMath for uint256;
+    //using SafeMath for uint256;
 
     string public override name;
     string public override symbol;
@@ -50,14 +50,14 @@ contract ERC20WithPermit is IERC20WithPermit, Pausable {
     }
 
     function _mint(address to, uint256 value) internal {
-        totalSupply = totalSupply.add(value);
-        balanceOf[to] = balanceOf[to].add(value);
+        totalSupply = totalSupply + value;
+        balanceOf[to] = balanceOf[to] + value;
         emit Transfer(address(0), to, value);
     }
 
     function _burn(address from, uint256 value) internal {
-        balanceOf[from] = balanceOf[from].sub(value);
-        totalSupply = totalSupply.sub(value);
+        balanceOf[from] = balanceOf[from] - value;
+        totalSupply = totalSupply - value;
         emit Transfer(from, address(0), value);
     }
 
@@ -75,8 +75,8 @@ contract ERC20WithPermit is IERC20WithPermit, Pausable {
         address to,
         uint256 value
     ) private {
-        balanceOf[from] = balanceOf[from].sub(value);
-        balanceOf[to] = balanceOf[to].add(value);
+        balanceOf[from] = balanceOf[from] - value;
+        balanceOf[to] = balanceOf[to] + value;
         emit Transfer(from, to, value);
     }
 
@@ -105,10 +105,8 @@ contract ERC20WithPermit is IERC20WithPermit, Pausable {
         address to,
         uint256 value
     ) external override whenNotPaused returns (bool) {
-        if (allowance[from][msg.sender] != uint256(-1)) {
-            allowance[from][msg.sender] = allowance[from][msg.sender].sub(
-                value
-            );
+        if (allowance[from][msg.sender] != type(uint256).max) {
+            allowance[from][msg.sender] = allowance[from][msg.sender] - value;
         }
         _transfer(from, to, value);
         return true;

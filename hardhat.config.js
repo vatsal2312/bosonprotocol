@@ -30,7 +30,7 @@ task("contracts-verify", "Verify already deployed contracts. Bear in mind that a
 
 module.exports = {
 	solidity: {
-		version: "0.7.1",
+		version: "0.8.4",
 		settings: {
 			optimizer: {
 				enabled: true,

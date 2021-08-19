@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
+pragma solidity 0.8.4;
 
-pragma solidity 0.7.1;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-
 import "./interfaces/IERC1155.sol";
 import "./interfaces/IERC1155TokenReceiver.sol";
 import "./interfaces/IERC721.sol";
@@ -12,6 +10,7 @@ import "./interfaces/IERC721TokenReceiver.sol";
 import "./interfaces/IERC1155ERC721.sol";
 import "./interfaces/IVoucherKernel.sol";
 import "./interfaces/ICashier.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 //preparing for ERC-1066, ERC-1444, EIP-838
 
@@ -20,8 +19,9 @@ import "./interfaces/ICashier.sol";
  *  Inspired by: https://github.com/pixowl/sandbox-smart-contracts
  */
 contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
-    using SafeMath for uint256;
+    //using SafeMath for uint256;
     using Address for address;
+    using Strings for uint256;
 
     //min security
     address private owner; //contract owner
@@ -100,8 +100,8 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         require(balances[_tokenId][_from] == _value, "IQ"); //invalid qty
 
         // SafeMath throws with insufficient funds or if _id is not valid (balance will be 0)
-        balances[_tokenId][_from] = balances[_tokenId][_from].sub(_value);
-        balances[_tokenId][_to] = _value.add(balances[_tokenId][_to]);
+        balances[_tokenId][_from] = balances[_tokenId][_from] - _value;
+        balances[_tokenId][_to] = _value + balances[_tokenId][_to];
 
         ICashier(cashierAddress).onERC1155Transfer(
             _from,
@@ -307,8 +307,8 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
             require(balances[tokenId][_from] == value, "IQ"); //invalid qty
 
             // SafeMath throws with insufficient funds or if _id is not valid (balance will be 0)
-            balances[tokenId][_from] = balances[tokenId][_from].sub(value);
-            balances[tokenId][_to] = value.add(balances[tokenId][_to]);
+            balances[tokenId][_from] = balances[tokenId][_from] - value;
+            balances[tokenId][_to] = value + balances[tokenId][_to];
 
             ICashier(cashierAddress).onERC1155Transfer(
                 _from,
@@ -546,7 +546,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
     ) internal {
         require(_to != address(0), "UNSPECIFIED_ADDRESS"); //FISSION.code(FISSION.Category.Find, FISSION.Status.NotFound_Unequal_OutOfRange)
 
-        balances[_tokenId][_to] = balances[_tokenId][_to].add(_value);
+        balances[_tokenId][_to] = balances[_tokenId][_to] + _value;
         emit TransferSingle(msg.sender, address(0), _to, _tokenId, _value);
 
         _doSafeTransferAcceptanceCheck(
@@ -634,9 +634,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         require(_tokenIds.length == _values.length, "MISMATCHED_ARRAY_LENGTHS"); //hex"28" FISSION.code(FISSION.Category.Find, FISSION.Status.Duplicate_Conflict_Collision)
 
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            balances[_tokenIds[i]][_to] = _values[i].add(
-                balances[_tokenIds[i]][_to]
-            );
+            balances[_tokenIds[i]][_to] = _values[i] + balances[_tokenIds[i]][_to];
         }
 
         emit TransferBatch(msg.sender, address(0), _to, _tokenIds, _values);
@@ -680,7 +678,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
     ) internal {
         require(_account != address(0), "UNSPECIFIED_ADDRESS"); //"UNSPECIFIED_ADDRESS" FISSION.code(FISSION.Category.Find, FISSION.Status.NotFound_Unequal_OutOfRange)
 
-        balances[_tokenId][_account] = balances[_tokenId][_account].sub(_value);
+        balances[_tokenId][_account] = balances[_tokenId][_account] - _value;
         emit TransferSingle(msg.sender, _account, address(0), _tokenId, _value);
     }
 
@@ -717,8 +715,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         require(_tokenIds.length == _values.length, "MISMATCHED_ARRAY_LENGTHS"); //hex"28" FISSION.code(FISSION.Category.Find, FISSION.Status.Duplicate_Conflict_Collision)
 
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            balances[_tokenIds[i]][_account] = balances[_tokenIds[i]][_account]
-                .sub(_values[i]);
+            balances[_tokenIds[i]][_account] = balances[_tokenIds[i]][_account] - _values[i];
         }
 
         emit TransferBatch(
@@ -768,7 +765,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
     function uri(uint256 _tokenId) external view returns (string memory) {
         return
             string(
-                abi.encodePacked(metadataBase, metadata1155Route, _uint2str(_tokenId))
+                abi.encodePacked(metadataBase, metadata1155Route, _tokenId.toString())
             );
     }
 
@@ -798,7 +795,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         require(owners721[_tokenId] != address(0), "INVALID_ID");
         return
             string(
-                abi.encodePacked(metadataBase, metadata721Route, _uint2str(_tokenId))
+                abi.encodePacked(metadataBase, metadata721Route, _tokenId.toString())
             );
     }
 
@@ -839,6 +836,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
      *      https://github.com/provable-things/ethereum-api/blob/master/provableAPI_0.5.sol
      * @param _i    uint parameter
      */
+/*
     function _uint2str(uint256 _i)
         internal
         pure
@@ -861,7 +859,7 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         }
         return string(bstr);
     }
-
+*/
     /**
      * @notice Get the contract owner
      * @return Address of the owner

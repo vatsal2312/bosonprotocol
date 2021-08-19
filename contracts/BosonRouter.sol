@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-pragma solidity 0.7.1;
+pragma solidity 0.8.4;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+//import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./interfaces/IVoucherKernel.sol";
 import "./interfaces/IERC20WithPermit.sol";
 import "./interfaces/IFundLimitsOracle.sol";
 import "./interfaces/IBosonRouter.sol";
 import "./interfaces/ICashier.sol";
 import "./UsingHelpers.sol";
+import "./ERC2771Context.sol";
 
 /**
  * @title Contract for interacting with Boson Protocol from the user's perspective.
@@ -21,16 +22,18 @@ contract BosonRouter is
     UsingHelpers,
     Pausable,
     ReentrancyGuard,
-    Ownable
+    Ownable,
+    ERC2771Context
 {
     using Address for address payable;
-    using SafeMath for uint256;
+    //using SafeMath for uint256;
 
     mapping(address => uint256) private correlationIds; // whenever a seller or a buyer interacts with the smart contract, a personal txID is emitted from an event.
 
     address private cashierAddress;
     address private voucherKernel;
     address private fundLimitsOracle;
+    address private trustedForwarder;
 
     event LogOrderCreated(
         uint256 indexed _tokenIdSupply,
@@ -50,6 +53,7 @@ contract BosonRouter is
     /**
      * @notice Acts as a modifier, but it's cheaper. Replacement of onlyOwner modifier. If the caller is not the owner of the contract, reverts.
      */
+
     function onlyRouterOwner() internal view {
         require(owner() == _msgSender(), "NO"); //not owner
     }
@@ -86,8 +90,9 @@ contract BosonRouter is
     constructor(
         address _voucherKernel,
         address _fundLimitsOracle,
-        address _cashierAddress
-    ) {
+        address _cashierAddress,
+        address _trustedForwarder
+    ) ERC2771Context(_trustedForwarder) {
         notZeroAddress(_voucherKernel);
         notZeroAddress(_fundLimitsOracle);
         notZeroAddress(_cashierAddress);
@@ -97,13 +102,17 @@ contract BosonRouter is
         cashierAddress = _cashierAddress;
     }
 
+    function _msgSender() internal view  override(Context, ERC2771Context) returns (address) { return super._msgSender(); }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) { return super._msgData(); }
+
     /**
      * @notice Pause the Cashier && the Voucher Kernel contracts in case of emergency.
      * All functions related to creating new batch, requestVoucher or withdraw will be paused, hence cannot be executed.
      * There is special function for withdrawing funds if contract is paused.
      */
     function pause() external override {
-        onlyRouterOwner();
+       onlyRouterOwner();
         _pause();
         IVoucherKernel(voucherKernel).pause();
         ICashier(cashierAddress).pause();
@@ -143,10 +152,10 @@ contract BosonRouter is
         nonReentrant
         whenNotPaused
     {
-        notAboveETHLimit(metadata[2].mul(metadata[5]));
-        notAboveETHLimit(metadata[3].mul(metadata[5]));
-        notAboveETHLimit(metadata[4].mul(metadata[5]));
-        require(metadata[3].mul(metadata[5]) == msg.value, "IF"); //invalid funds
+        notAboveETHLimit(metadata[2] * metadata[5]);
+        notAboveETHLimit(metadata[3] * metadata[5]);
+        notAboveETHLimit(metadata[4] * metadata[5]);
+        require((metadata[3] * metadata[5]) == msg.value, "IF"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         uint256 tokenIdSupply =
@@ -191,11 +200,11 @@ contract BosonRouter is
     ) external override whenNotPaused {
         notZeroAddress(_tokenPriceAddress);
         notZeroAddress(_tokenDepositAddress);
-        notAboveTokenLimit(_tokenPriceAddress, metadata[2].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[3].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[4].mul(metadata[5]));
+        notAboveTokenLimit(_tokenPriceAddress, metadata[2] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[3] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[4] * metadata[5]);
 
-        require(metadata[3].mul(metadata[5]) == _tokensSent, "IF"); //invalid funds
+        require((metadata[3] * metadata[5]) == _tokensSent, "IF"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         IERC20WithPermit(_tokenDepositAddress).permit(
@@ -258,11 +267,11 @@ contract BosonRouter is
         uint256[] calldata metadata
     ) external override whenNotPaused {
         notZeroAddress(_tokenDepositAddress);
-        notAboveETHLimit(metadata[2].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[3].mul(metadata[5]));
-        notAboveTokenLimit(_tokenDepositAddress, metadata[4].mul(metadata[5]));
+        notAboveETHLimit(metadata[2] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[3] * metadata[5]);
+        notAboveTokenLimit(_tokenDepositAddress, metadata[4] * metadata[5]);
 
-        require(metadata[3].mul(metadata[5]) == _tokensSent, "IF"); //invalid funds
+        require((metadata[3] * metadata[5]) == _tokensSent, "IF"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         IERC20WithPermit(_tokenDepositAddress).permit(
@@ -320,11 +329,11 @@ contract BosonRouter is
         uint256[] calldata metadata
     ) external payable override nonReentrant whenNotPaused {
         notZeroAddress(_tokenPriceAddress);
-        notAboveTokenLimit(_tokenPriceAddress, metadata[2].mul(metadata[5]));
-        notAboveETHLimit(metadata[3].mul(metadata[5]));
-        notAboveETHLimit(metadata[4].mul(metadata[5]));
+        notAboveTokenLimit(_tokenPriceAddress, metadata[2] * metadata[5]);
+        notAboveETHLimit(metadata[3] * metadata[5]);
+        notAboveETHLimit(metadata[4] * metadata[5]);
 
-        require(metadata[3].mul(metadata[5]) == msg.value, "IF"); //invalid funds
+        require((metadata[3] * metadata[5]) == msg.value, "IF"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         uint256 tokenIdSupply =
@@ -373,7 +382,7 @@ contract BosonRouter is
         //checks
         (uint256 price, , uint256 depositBu) =
             IVoucherKernel(voucherKernel).getOrderCosts(_tokenIdSupply);
-        require(price.add(depositBu) == weiReceived, "IF"); //invalid funds
+        require((price + depositBu) == weiReceived, "IF"); //invalid funds
         //hex"54" FISSION.code(FISSION.Category.Finance, FISSION.Status.InsufficientFunds)
 
         IVoucherKernel(voucherKernel).fillOrder(
@@ -402,7 +411,7 @@ contract BosonRouter is
     ) external override nonReentrant whenNotPaused {
         (uint256 price, uint256 depositBu) =
             IVoucherKernel(voucherKernel).getBuyerOrderCosts(_tokenIdSupply);
-        require(_tokensSent.sub(depositBu) == price, "IF"); //invalid funds
+        require((_tokensSent - depositBu) == price, "IF"); //invalid funds
 
         address tokenPriceAddress =
             IVoucherKernel(voucherKernel).getVoucherPriceToken(_tokenIdSupply);
@@ -475,7 +484,7 @@ contract BosonRouter is
     ) external override nonReentrant whenNotPaused {
         (uint256 price, uint256 depositBu) =
             IVoucherKernel(voucherKernel).getBuyerOrderCosts(_tokenIdSupply);
-        require(_tokensSent.sub(depositBu) == price, "IF"); //invalid funds
+        require((_tokensSent - depositBu) == price, "IF"); //invalid funds
 
         address tokenPriceAddress =
             IVoucherKernel(voucherKernel).getVoucherPriceToken(_tokenIdSupply);
@@ -649,7 +658,7 @@ contract BosonRouter is
         ICashier(cashierAddress).withdrawDepositsSe(
             _tokenIdSupply,
             _burnedSupplyQty,
-            msg.sender
+            payable(msg.sender)
         );
 
         correlationIds[msg.sender]++;
