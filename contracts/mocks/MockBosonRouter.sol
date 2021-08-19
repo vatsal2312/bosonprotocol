@@ -2,10 +2,10 @@
 pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-//import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "../interfaces/IVoucherKernel.sol";
 import "../interfaces/IERC20WithPermit.sol";
 import "../interfaces/IFundLimitsOracle.sol";
@@ -14,15 +14,15 @@ import "../interfaces/ICashier.sol";
 import "../UsingHelpers.sol";
 
 /**
- * @title Mock Contract for testing purposes.
- * @notice This mock passes in invalid values for the purpose of testing calls to VoucherKernel.createPaymentMethod and possibly other functions
+ * @title Contract for interacting with Boson Protocol from the user's perspective.
  */
 contract MockBosonRouter is
     IBosonRouter,
     UsingHelpers,
     Pausable,
     ReentrancyGuard,
-    Ownable
+    Ownable,
+    ERC2771Context
 {
     using Address for address payable;
     //using SafeMath for uint256;
@@ -32,6 +32,7 @@ contract MockBosonRouter is
     address private cashierAddress;
     address private voucherKernel;
     address private fundLimitsOracle;
+    address private trustedForwarder;
 
     event LogOrderCreated(
         uint256 indexed _tokenIdSupply,
@@ -51,6 +52,7 @@ contract MockBosonRouter is
     /**
      * @notice Acts as a modifier, but it's cheaper. Replacement of onlyOwner modifier. If the caller is not the owner of the contract, reverts.
      */
+
     function onlyRouterOwner() internal view {
         require(owner() == _msgSender(), "NO"); //not owner
     }
@@ -87,8 +89,9 @@ contract MockBosonRouter is
     constructor(
         address _voucherKernel,
         address _fundLimitsOracle,
-        address _cashierAddress
-    ) {
+        address _cashierAddress,
+        address _trustedForwarder
+    ) ERC2771Context(_trustedForwarder) {
         notZeroAddress(_voucherKernel);
         notZeroAddress(_fundLimitsOracle);
         notZeroAddress(_cashierAddress);
@@ -96,6 +99,24 @@ contract MockBosonRouter is
         voucherKernel = _voucherKernel;
         fundLimitsOracle = _fundLimitsOracle;
         cashierAddress = _cashierAddress;
+    }
+
+    function _msgSender()
+        internal
+        view
+        override(Context, ERC2771Context)
+        returns (address)
+    {
+        return super._msgSender();
+    }
+
+    function _msgData()
+        internal
+        view
+        override(Context, ERC2771Context)
+        returns (bytes calldata)
+    {
+        return super._msgData();
     }
 
     /**

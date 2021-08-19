@@ -4,6 +4,8 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 //import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./interfaces/IERC1155.sol";
 import "./interfaces/IERC165.sol";
@@ -24,7 +26,7 @@ import "./UsingHelpers.sol";
  *      See: https://ethereum.stackexchange.com/questions/5924/how-do-ethereum-mining-nodes-maintain-a-time-consistent-with-the-network/5931#5931
  */
 // solhint-disable-next-line
-contract VoucherKernel is IVoucherKernel, Ownable, Pausable, UsingHelpers {
+contract VoucherKernel is IVoucherKernel, ERC2771Context, Ownable, Pausable, UsingHelpers {
     using Address for address;
     //using SafeMath for uint256;
 
@@ -166,12 +168,16 @@ contract VoucherKernel is IVoucherKernel, Ownable, Pausable, UsingHelpers {
         _;
     }
 
-    constructor(address _tokensContract) {
+    constructor(address _tokensContract, address _trustedForwarder) ERC2771Context(_trustedForwarder) {
         tokensContract = _tokensContract;
 
         complainPeriod = 7 * 1 days;
         cancelFaultPeriod = 7 * 1 days;
     }
+
+    function _msgSender() internal view  override(Context, ERC2771Context) returns (address) { return super._msgSender(); }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) { return super._msgData(); }
 
     /**
      * @notice Pause the process of interaction with voucherID's (ERC-721), in case of emergency.

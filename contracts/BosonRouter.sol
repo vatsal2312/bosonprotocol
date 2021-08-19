@@ -5,15 +5,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-//import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./interfaces/IVoucherKernel.sol";
 import "./interfaces/IERC20WithPermit.sol";
 import "./interfaces/IFundLimitsOracle.sol";
 import "./interfaces/IBosonRouter.sol";
 import "./interfaces/ICashier.sol";
 import "./UsingHelpers.sol";
-import "./ERC2771Context.sol";
-
 /**
  * @title Contract for interacting with Boson Protocol from the user's perspective.
  */

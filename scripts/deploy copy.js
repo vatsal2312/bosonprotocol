@@ -24,7 +24,6 @@ class DeploymentExecutor {
     this.voucherKernel;
     this.cashier;
     this.br;
-    this.trustedForwarder;
 
     this.boson_token;
     this.TOKEN_LIMIT;
@@ -107,53 +106,22 @@ class DeploymentExecutor {
     const FundLimitsOracle = await ethers.getContractFactory(
       'FundLimitsOracle'
     );
-    const MinimalForwarder = await ethers.getContractFactory(
-      'MinimalForwarder'
-    );
-
-    this.trustedForwarder = await MinimalForwarder.deploy();
-
-    console.log(
-      'this.trustedForwarder.address ',
-      this.trustedForwarder.address
-    );
 
     this.flo = await FundLimitsOracle.deploy();
-    this.erc1155erc721 = await ERC1155ERC721.deploy(
-      this.trustedForwarder.address
-    );
-
-    console.log('deployed tokens contract');
-
-    this.voucherKernel = await VoucherKernel.deploy(
-      this.erc1155erc721.address,
-      this.trustedForwarder.address
-    );
-
-    console.log('deployed voucher kernel contract');
-
-    this.cashier = await Cashier.deploy(
-      this.voucherKernel.address,
-      this.trustedForwarder.address
-    );
-
-    console.log('deployed cashier contract');
-
+    this.erc1155erc721 = await ERC1155ERC721.deploy();
+    this.voucherKernel = await VoucherKernel.deploy(this.erc1155erc721.address);
+    this.cashier = await Cashier.deploy(this.voucherKernel.address);
     this.br = await BosonRouter.deploy(
       this.voucherKernel.address,
       this.flo.address,
-      this.cashier.address,
-      this.trustedForwarder.address
+      this.cashier.address
     );
-
-    console.log('deployed boson router contract');
 
     await this.flo.deployed();
     await this.erc1155erc721.deployed();
     await this.voucherKernel.deployed();
     await this.cashier.deployed();
     await this.br.deployed();
-    await this.trustedForwarder.deployed();
   }
 
   logContracts() {
@@ -162,10 +130,6 @@ class DeploymentExecutor {
     console.log('VoucherKernel Contract Address: ', this.voucherKernel.address);
     console.log('Cashier Contract Address: ', this.cashier.address);
     console.log('Boson Router Contract Address: ', this.br.address);
-    console.log(
-      'Trusted Forwarder Contract Address: ',
-      this.trustedForwarder.address
-    );
   }
 
   writeContracts() {
@@ -179,7 +143,6 @@ class DeploymentExecutor {
           voucherKernel: this.voucherKernel.address,
           cashier: this.cashier.address,
           br: this.br.address,
-          trustedForwarder: this.trustedForwarder.address,
         },
         0,
         2

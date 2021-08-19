@@ -3,6 +3,8 @@ pragma solidity 0.8.4;
 
 
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./interfaces/IERC1155.sol";
 import "./interfaces/IERC1155TokenReceiver.sol";
 import "./interfaces/IERC721.sol";
@@ -10,7 +12,6 @@ import "./interfaces/IERC721TokenReceiver.sol";
 import "./interfaces/IERC1155ERC721.sol";
 import "./interfaces/IVoucherKernel.sol";
 import "./interfaces/ICashier.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 //preparing for ERC-1066, ERC-1444, EIP-838
 
@@ -18,7 +19,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
  * @title Multi-token contract, implementing ERC-1155 and ERC-721 hybrid
  *  Inspired by: https://github.com/pixowl/sandbox-smart-contracts
  */
-contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
+contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721, ERC2771Context {
     //using SafeMath for uint256;
     using Address for address;
     using Strings for uint256;
@@ -70,9 +71,13 @@ contract ERC1155ERC721 is IERC1155, IERC721, IERC1155ERC721 {
         _;
     }
 
-    constructor() {
+    constructor(address _trustedForwarder) ERC2771Context(_trustedForwarder) {
         owner = msg.sender;
     }
+
+    function _msgSender() internal view  override(ERC2771Context) returns (address) { return super._msgSender(); }
+
+    function _msgData() internal view override(ERC2771Context) returns (bytes calldata) { return super._msgData(); }
 
     /**
      * @notice Transfers amount of _tokenId from-to addresses with safety call.

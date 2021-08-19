@@ -7,16 +7,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./interfaces/IVoucherKernel.sol";
 import "./interfaces/ICashier.sol";
 import "./interfaces/IBosonRouter.sol";
 import "./UsingHelpers.sol";
 
+
 /**
  * @title Contract for managing funds
  * Roughly following OpenZeppelin's Escrow at https://github.com/OpenZeppelin/openzeppelin-solidity/contracts/payment/
  */
-contract Cashier is ICashier, UsingHelpers, ReentrancyGuard, Ownable, Pausable {
+contract Cashier is ICashier, ERC2771Context, UsingHelpers, ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
     using Address for address payable;
     //using SafeMath for uint256;
@@ -74,10 +76,14 @@ contract Cashier is ICashier, UsingHelpers, ReentrancyGuard, Ownable, Pausable {
         _;
     }
 
-    constructor(address _voucherKernel) {
+    constructor(address _voucherKernel, address _trustedForwarder) ERC2771Context(_trustedForwarder) {
         voucherKernel = _voucherKernel;
         disasterState = false;
     }
+
+    function _msgSender() internal view  override(Context, ERC2771Context) returns (address) { return super._msgSender(); }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) { return super._msgData(); }
 
     /**
      * @notice Pause the process of interaction with voucherID's (ERC-721), in case of emergency.

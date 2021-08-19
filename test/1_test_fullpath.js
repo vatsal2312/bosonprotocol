@@ -55,25 +55,41 @@ describe.only('Voucher tests', () => {
     FundLimitsOracle = await ethers.getContractFactory('FundLimitsOracle');
     MockBosonRouter = await ethers.getContractFactory('MockBosonRouter');
     MinimalForwarder = await ethers.getContractFactory('MinimalForwarder');
-
   });
 
   async function deployContracts() {
     const sixtySeconds = 60;
 
-    contractFundLimitsOracle = await FundLimitsOracle.deploy();
-    contractERC1155ERC721 = await ERC1155ERC721.deploy();
-    contractVoucherKernel = await VoucherKernel.deploy(
-      contractERC1155ERC721.address
+    console.log('deploying contracts');
+
+    console.log('about to deploy contractTrustedForward ');
+
+    contractTrustedForward = await MinimalForwarder.deploy();
+
+    console.log(
+      'contractTrustedForward.address ',
+      contractTrustedForward.address
     );
-    contractCashier = await Cashier.deploy(contractVoucherKernel.address);
+
+    contractFundLimitsOracle = await FundLimitsOracle.deploy();
+    contractERC1155ERC721 = await ERC1155ERC721.deploy(
+      contractTrustedForward.address
+    );
+    contractVoucherKernel = await VoucherKernel.deploy(
+      contractERC1155ERC721.address,
+      contractTrustedForward.address
+    );
+    contractCashier = await Cashier.deploy(
+      contractVoucherKernel.address,
+      contractTrustedForward.address
+    );
+
     contractBosonRouter = await BosonRouter.deploy(
       contractVoucherKernel.address,
       contractFundLimitsOracle.address,
-      contractCashier.address
+      contractCashier.address,
+      contractTrustedForward.address
     );
-    
-    contractTrustedForward = await MinimalForwarder.deploy();
 
     contractMockBosonRouter = await MockBosonRouter.deploy(
       contractVoucherKernel.address,
