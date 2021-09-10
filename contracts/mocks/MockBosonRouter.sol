@@ -184,7 +184,7 @@ contract MockBosonRouter is
 
         IVoucherKernel(voucherKernel).createPaymentMethod(
             tokenIdSupply,
-            ETHETH,
+            5,
             address(0),
             address(0)
         );
