@@ -19,6 +19,7 @@ class DeploymentExecutor {
   cashier;
   br;
   boson_token;
+  other_token;
   TOKEN_LIMIT;
   daiTokenWrapper;
   dai_token;
@@ -42,6 +43,7 @@ class DeploymentExecutor {
     this.TOKEN_LIMIT;
 
     this.boson_token = process.env.BOSON_TOKEN;
+    this.other_token = process.env.OTHER_TOKEN;
     this.TOKEN_LIMIT = (1 * 10 ** 18).toString();
     this.daiTokenWrapper;
     this.dai_token = process.env.DAI_TOKEN;
@@ -242,6 +244,7 @@ class ProdExecutor extends DeploymentExecutor {
   async setDefaults() {
     await super.setDefaults();
     await this.tokenRegistry.setTokenLimit(this.boson_token, this.TOKEN_LIMIT);
+    await this.tokenRegistry.setTokenLimit(this.other_token, this.TOKEN_LIMIT);
     await this.tokenRegistry.setTokenLimit(this.dai_token, this.TOKEN_LIMIT);
   }
 }
@@ -264,6 +267,7 @@ class NonProdExecutor extends DeploymentExecutor {
     await this.voucherKernel.setComplainPeriod(2 * this.SIXTY_SECONDS);
     await this.voucherKernel.setCancelFaultPeriod(2 * this.SIXTY_SECONDS);
     await this.tokenRegistry.setTokenLimit(this.boson_token, this.TOKEN_LIMIT);
+    await this.tokenRegistry.setTokenLimit(this.other_token, this.TOKEN_LIMIT);
     await this.tokenRegistry.setTokenLimit(this.dai_token, this.TOKEN_LIMIT);
   }
 }
