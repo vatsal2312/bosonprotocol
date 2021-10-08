@@ -117,6 +117,34 @@ class DeploymentExecutor {
     console.log('$ Cashier', event.event, 'at:', event.args._newTokenContract);
 
     tx = await this.tokenRegistry.setTokenWrapperAddress(
+      this.boson_token,
+      this.boson_token
+    );
+
+    txReceipt = await tx.wait();
+    event = txReceipt.events[0];
+    console.log(
+      '$ TokenRegistry',
+      event.event,
+      'at:',
+      event.args._newWrapperAddress
+    );
+
+    tx = await this.tokenRegistry.setTokenWrapperAddress(
+      this.other_token,
+      this.other_token
+    );
+
+    txReceipt = await tx.wait();
+    event = txReceipt.events[0];
+    console.log(
+      '$ TokenRegistry',
+      event.event,
+      'at:',
+      event.args._newWrapperAddress
+    );
+
+    tx = await this.tokenRegistry.setTokenWrapperAddress(
       this.dai_token,
       this.daiTokenWrapper.address
     );
