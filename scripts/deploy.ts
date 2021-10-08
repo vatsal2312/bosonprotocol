@@ -170,6 +170,19 @@ class DeploymentExecutor {
       'at:',
       event.args._nonTransferableTokenContractAddress
     );
+
+    tx = await this.gate.transferOwnership(
+      this.br.address
+    );
+
+    txReceipt = await tx.wait();
+    event = txReceipt.events[0];
+    console.log(
+      '$ Owner',
+      event.event,
+      'at:',
+      event.args.newOwner
+    );
   }
 
   async deployContracts() {
