@@ -45,7 +45,7 @@ const config: HardhatUserConfig = {
 	networks: {
 		hardhat: {
 			accounts: {mnemonic: testMnemonic, count: 10},
-			chainId: 1
+			chainId: 31337
 		},
 		rinkeby: {
 			url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
