@@ -144,19 +144,19 @@ class DeploymentExecutor {
       event.args._newWrapperAddress
     );
 
-    // tx = await this.tokenRegistry.setTokenWrapperAddress(
-    //   this.dai_token,
-    //   this.daiTokenWrapper.address
-    // );
+    tx = await this.tokenRegistry.setTokenWrapperAddress(
+      this.dai_token,
+      this.daiTokenWrapper.address
+    );
 
-    // txReceipt = await tx.wait();
-    // event = txReceipt.events[0];
-    // console.log(
-    //   '$ TokenRegistry',
-    //   event.event,
-    //   'at:',
-    //   event.args._newWrapperAddress
-    // );
+    txReceipt = await tx.wait();
+    event = txReceipt.events[0];
+    console.log(
+      '$ TokenRegistry',
+      event.event,
+      'at:',
+      event.args._newWrapperAddress
+    );
 
     tx = await this.gate.setNonTransferableTokenContract(
       this.erc1155NonTransferable.address
@@ -191,7 +191,7 @@ class DeploymentExecutor {
     const Cashier = await ethers.getContractFactory('Cashier');
     const BosonRouter = await ethers.getContractFactory('BosonRouter');
     const TokenRegistry = await ethers.getContractFactory('TokenRegistry');
-    // const DAITokenWrapper = await ethers.getContractFactory('DAITokenWrapper');
+    const DAITokenWrapper = await ethers.getContractFactory('DAITokenWrapper');
     const Gate = await ethers.getContractFactory('Gate');
     const ERC1155NonTransferable = await ethers.getContractFactory(
       'ERC1155NonTransferable'
@@ -206,7 +206,7 @@ class DeploymentExecutor {
       this.tokenRegistry.address,
       this.cashier.address
     );
-    // this.daiTokenWrapper = await DAITokenWrapper.deploy(this.dai_token);
+    this.daiTokenWrapper = await DAITokenWrapper.deploy(this.dai_token);
     this.gate = await Gate.deploy(this.br.address);
     this.erc1155NonTransferable = await ERC1155NonTransferable.deploy(
       'https://quests.bosonportal.io/{id}.json'
@@ -235,10 +235,10 @@ class DeploymentExecutor {
       'Token Registry Contract Address: ',
       this.tokenRegistry.address
     );
-    // console.log(
-    //   'DAI Token Wrapper Contract Address: ',
-    //   this.daiTokenWrapper.address
-    // );
+    console.log(
+      'DAI Token Wrapper Contract Address: ',
+      this.daiTokenWrapper.address
+    );
     console.log('Gate Contract Address: ', this.gate.address);
     console.log(
       'ERC1155NonTransferable Contract Address: ',
@@ -258,7 +258,7 @@ class DeploymentExecutor {
           voucherKernel: this.voucherKernel.address,
           cashier: this.cashier.address,
           br: this.br.address,
-          // daiTokenWrapper: this.daiTokenWrapper.address,
+          daiTokenWrapper: this.daiTokenWrapper.address,
           gate: this.gate.address,
           erc1155NonTransferable: this.erc1155NonTransferable.address,
           daiTokenUsed: this.dai_token,

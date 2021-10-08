@@ -43,6 +43,11 @@ const config: HardhatUserConfig = {
 	},
 	defaultNetwork: "hardhat",
 	networks: {
+		localhost: {
+      url: 'http://localhost:8545',
+      accounts: {mnemonic: testMnemonic, count: 10},
+      chainId: 31337,
+    },
 		hardhat: {
 			accounts: {mnemonic: testMnemonic, count: 10},
 			chainId: 31337
