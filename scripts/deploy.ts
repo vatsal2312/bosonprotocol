@@ -217,7 +217,7 @@ class DeploymentExecutor {
     await this.voucherKernel.deployed();
     await this.cashier.deployed();
     await this.br.deployed();
-    // await this.daiTokenWrapper.deployed();
+    await this.daiTokenWrapper.deployed();
     await this.gate.deployed();
     await this.erc1155NonTransferable.deployed();
   }
