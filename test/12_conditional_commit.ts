@@ -16,7 +16,6 @@ import {
   MockERC20Permit,
   ERC1155NonTransferable,
   Gate,
-  MockGate,
 } from '../typechain';
 import revertReasons from '../testHelpers/revertReasons';
 import * as eventUtils from '../testHelpers/events';
@@ -37,7 +36,6 @@ let TokenRegistry_Factory: ContractFactory;
 let MockERC20Permit_Factory: ContractFactory;
 let ERC1155NonTransferable_Factory: ContractFactory;
 let Gate_Factory: ContractFactory;
-let MockGate_Factory: ContractFactory;
 
 const eventNames = eventUtils.eventNames;
 let users;
@@ -64,7 +62,6 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
       'ERC1155NonTransferable'
     );
     Gate_Factory = await ethers.getContractFactory('Gate');
-    MockGate_Factory = await ethers.getContractFactory('MockGate');
     MockERC20Permit_Factory = await ethers.getContractFactory(
       'MockERC20Permit'
     );
@@ -78,8 +75,7 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
     contractBSNTokenDeposit: MockERC20Permit,
     contractTokenRegistry: TokenRegistry,
     contractERC1155NonTransferable: ERC1155NonTransferable,
-    contractGate: Gate,
-    contractMockGate: MockGate;
+    contractGate: Gate;
 
   const deadline = toWei(1);
 
@@ -385,21 +381,6 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
       });
 
       describe('Flow with automatic gate.registerVoucherSetId', () => {
-        beforeEach(async () => {
-          // deploy gate address that supports setting from router
-          contractMockGate = (await MockGate_Factory.deploy()) as Contract &
-            Gate;
-
-          await contractMockGate.deployed();
-
-          await contractMockGate.setNonTransferableTokenContract(
-            contractERC1155NonTransferable.address
-          );
-          await contractMockGate.setBosonRouterAddress(
-            contractBosonRouter.address
-          );
-        });
-
         it('Should be able to create Voucher with gate address and non empty nft token id', async () => {
           const txValue = BN(constants.PROMISE_DEPOSITSE1).mul(
             BN(constants.QTY_10)
@@ -416,12 +397,12 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
                   constants.PROMISE_DEPOSITBU1,
                   constants.QTY_10,
                 ],
-                contractMockGate.address,
+                contractGate.address,
                 constants.NFT_TOKEN_ID,
                 {value: txValue}
               )
           )
-            .to.emit(contractMockGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
+            .to.emit(contractGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
             .withArgs(tokenSupplyKey, constants.NFT_TOKEN_ID);
         });
 
@@ -706,21 +687,6 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
       });
 
       describe('Flow with automatic gate.registerVoucherSetId', () => {
-        beforeEach(async () => {
-          // deploy gate address that supports setting from router
-          contractMockGate = (await MockGate_Factory.deploy()) as Contract &
-            Gate;
-
-          await contractMockGate.deployed();
-
-          await contractMockGate.setNonTransferableTokenContract(
-            contractERC1155NonTransferable.address
-          );
-          await contractMockGate.setBosonRouterAddress(
-            contractBosonRouter.address
-          );
-        });
-
         it('Should be able to create Voucher with gate address and non empty nft token id', async () => {
           const {txValue, v, r, s} = await generateInputs(
             users.seller,
@@ -747,11 +713,11 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
                   constants.PROMISE_DEPOSITBU1,
                   constants.QTY_10,
                 ],
-                contractMockGate.address,
+                contractGate.address,
                 constants.NFT_TOKEN_ID
               )
           )
-            .to.emit(contractMockGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
+            .to.emit(contractGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
             .withArgs(tokenSupplyKey, constants.NFT_TOKEN_ID);
         });
 
@@ -1071,21 +1037,6 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
       });
 
       describe('Flow with automatic gate.registerVoucherSetId', () => {
-        beforeEach(async () => {
-          // deploy gate address that supports setting from router
-          contractMockGate = (await MockGate_Factory.deploy()) as Contract &
-            Gate;
-
-          await contractMockGate.deployed();
-
-          await contractMockGate.setNonTransferableTokenContract(
-            contractERC1155NonTransferable.address
-          );
-          await contractMockGate.setBosonRouterAddress(
-            contractBosonRouter.address
-          );
-        });
-
         it('Should be able to create Voucher with gate address and non empty nft token id', async () => {
           const {txValue, v, r, s} = await generateInputs(
             users.seller,
@@ -1111,11 +1062,11 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
                   constants.PROMISE_DEPOSITBU1,
                   constants.QTY_10,
                 ],
-                contractMockGate.address,
+                contractGate.address,
                 constants.NFT_TOKEN_ID
               )
           )
-            .to.emit(contractMockGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
+            .to.emit(contractGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
             .withArgs(tokenSupplyKey, constants.NFT_TOKEN_ID);
         });
 
@@ -1402,21 +1353,6 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
       });
 
       describe('Flow with automatic gate.registerVoucherSetId', () => {
-        beforeEach(async () => {
-          // deploy gate address that supports setting from router
-          contractMockGate = (await MockGate_Factory.deploy()) as Contract &
-            Gate;
-
-          await contractMockGate.deployed();
-
-          await contractMockGate.setNonTransferableTokenContract(
-            contractERC1155NonTransferable.address
-          );
-          await contractMockGate.setBosonRouterAddress(
-            contractBosonRouter.address
-          );
-        });
-
         it('Should be able to create Voucher with gate address and non empty nft token id', async () => {
           const txValue = BN(constants.PROMISE_DEPOSITSE1).mul(
             BN(constants.QTY_10)
@@ -1434,12 +1370,12 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
                   constants.PROMISE_DEPOSITBU1,
                   constants.QTY_10,
                 ],
-                contractMockGate.address,
+                contractGate.address,
                 constants.NFT_TOKEN_ID,
                 {value: txValue}
               )
           )
-            .to.emit(contractMockGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
+            .to.emit(contractGate, eventNames.LOG_VOUCHER_SET_REGISTERED)
             .withArgs(tokenSupplyKey, constants.NFT_TOKEN_ID);
         });
 
@@ -1891,10 +1827,13 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
           users.seller,
           constants.PROMISE_VALID_FROM,
           constants.PROMISE_VALID_TO,
+          constants.product_price,
           constants.PROMISE_DEPOSITSE1,
+          constants.buyer_deposit,
           constants.QTY_10,
           contractGate,
-          0
+          0,
+          true
         );
 
         const txReceipt = await txOrder.wait();
@@ -1993,7 +1932,13 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
       });
 
       it('[NEGATIVE] Should not be able to request voucher twice', async () => {
-        await utils.commitToBuy(users.buyer, users.seller, tokenSupplyKey);
+        await utils.commitToBuy(
+          users.buyer,
+          users.seller,
+          tokenSupplyKey,
+          constants.product_price,
+          constants.buyer_deposit
+        );
 
         const {txValue, DEPOSIT, PRICE} = await generateInputs(
           users.buyer,
@@ -2064,7 +2009,9 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
           users.seller,
           timestamp,
           timestamp + constants.SECONDS_IN_DAY,
+          constants.product_price,
           constants.seller_deposit,
+          constants.buyer_deposit,
           constants.QTY_10,
           users.other1, /// gate address that maps to EOA
           0
@@ -2109,7 +2056,9 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
           users.seller,
           timestamp,
           timestamp + constants.SECONDS_IN_DAY,
+          constants.product_price,
           constants.seller_deposit,
+          constants.buyer_deposit,
           constants.QTY_10,
           contractGate,
           0
@@ -2218,10 +2167,13 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
           users.seller,
           constants.PROMISE_VALID_FROM,
           constants.PROMISE_VALID_TO,
+          constants.product_price,
           constants.PROMISE_DEPOSITSE1,
+          constants.buyer_deposit,
           constants.QTY_10,
           contractGate,
-          0
+          0,
+          true
         );
 
         const txReceipt = await txOrder.wait();
@@ -2378,7 +2330,9 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
           users.seller,
           timestamp,
           timestamp + constants.SECONDS_IN_DAY,
+          constants.product_price,
           constants.seller_deposit,
+          constants.buyer_deposit,
           constants.QTY_10,
           users.other1, /// gate address that maps to EOA
           0
@@ -2413,7 +2367,9 @@ describe('Create Voucher sets and commit to vouchers with token conditional comm
           users.seller,
           timestamp,
           timestamp + constants.SECONDS_IN_DAY,
+          constants.product_price,
           constants.seller_deposit,
+          constants.buyer_deposit,
           constants.QTY_10,
           contractGate,
           0
