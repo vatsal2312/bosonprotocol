@@ -44,3 +44,14 @@ jobs:
       - run: npm install
       - run: npm run contracts:compile
       - run: npm run tests:unit
+
+  security:
+    needs: test
+    runs-on: ubuntu-latest
+    container: trailofbits/eth-security-toolbox:latest
+      volumes:
+        - ${{ github.workspace }}:/share
+    steps:
+      - name: slither
+          run: |
+            slither .
