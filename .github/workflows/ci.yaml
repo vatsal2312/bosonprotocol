@@ -47,8 +47,8 @@ jobs:
 
   security:
     needs: test
-    name: security
-    container: trailofbits/eth-security-toolbox:latest
+    container:
+      image: trailofbits/eth-security-toolbox:latest
       volumes:
         - ${{ github.workspace }}:/share
     steps:
