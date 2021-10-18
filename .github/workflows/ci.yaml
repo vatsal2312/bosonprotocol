@@ -47,7 +47,6 @@ jobs:
 
   security:
     needs: test
-    runs-on: ubuntu-latest
     name: security
     container: trailofbits/eth-security-toolbox:latest
       volumes:
