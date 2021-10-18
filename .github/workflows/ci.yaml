@@ -53,5 +53,5 @@ jobs:
         - ${{ github.workspace }}:/share
     steps:
       - name: slither
-          run: |
-            slither .
+        run: |
+          slither .
