@@ -55,4 +55,5 @@ jobs:
     steps:
       - name: slither
         run: |
+          cd /share
           slither .
