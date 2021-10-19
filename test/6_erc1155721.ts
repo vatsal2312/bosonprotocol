@@ -1656,6 +1656,131 @@ describe('ERC1155ERC721', () => {
         assert.equal(approvedAddress, expectedApprovedAddress);
       });
 
+      it('[safeMint] Should mint a token', async () => {
+        // spoofing the VoucherKernel address here because the function is being called directly instead of via the VoucherKernel contract
+        await contractERC1155ERC721.setVoucherKernelAddress(
+          users.deployer.address
+        );
+
+        const tokenIdForMint = 123;
+        const tx = await contractERC1155ERC721.safeMint(
+          users.other1.address,
+          tokenIdForMint
+        );
+
+        const txReceipt = await tx.wait();
+
+        eventUtils.assertEventEmitted(
+          txReceipt,
+          ERC1155ERC721_Factory,
+          eventNames.TRANSFER,
+          (ev) => {
+            assert.equal(
+              ev._from,
+              constants.ZERO_ADDRESS,
+              'ev._from not as expected!'
+            );
+            assert.equal(
+              ev._to,
+              users.other1.address,
+              'ev._to not as expected!'
+            );
+            assert.equal(
+              ev._tokenId,
+              tokenIdForMint,
+              'ev._tokenId not as expected!'
+            );
+          }
+        );
+
+        const expectedBalance = 1;
+        const balanceOfBuyer = await contractERC1155ERC721.functions[
+          fnSignatures.balanceOf721
+        ](users.other1.address);
+
+        assert.equal(balanceOfBuyer.toString(), expectedBalance.toString());
+      });
+
+      it('[safeMint] Should be able to mint a token to a contract that supports it', async () => {
+        const supportingContractAddress = contractMockERC721Receiver.address;
+
+        // spoofing the VoucherKernel address here because the function is being called directly instead of via the VoucherKernel contract
+        await contractERC1155ERC721.setVoucherKernelAddress(
+          users.deployer.address
+        );
+
+        const tokenIdForMint = 123;
+        const tx = await contractERC1155ERC721.safeMint(
+          supportingContractAddress,
+          tokenIdForMint
+        );
+
+        const txReceipt = await tx.wait();
+
+        eventUtils.assertEventEmitted(
+          txReceipt,
+          ERC1155ERC721_Factory,
+          eventNames.TRANSFER,
+          (ev) => {
+            assert.equal(
+              ev._from,
+              constants.ZERO_ADDRESS,
+              'ev._from not as expected!'
+            );
+            assert.equal(
+              ev._to,
+              supportingContractAddress,
+              'ev._to not as expected!'
+            );
+            assert.equal(
+              ev._tokenId,
+              tokenIdForMint,
+              'ev._tokenId not as expected!'
+            );
+          }
+        );
+
+        const expectedBalance = 1;
+        const balanceOfBuyer = await contractERC1155ERC721.functions[
+          fnSignatures.balanceOf721
+        ](supportingContractAddress);
+
+        assert.equal(balanceOfBuyer.toString(), expectedBalance.toString());
+      });
+
+      it('[NEGATIVE][safeMint] Should revert when to is a contract that cannot receive it', async () => {
+        // spoofing the VoucherKernel address here because the function is being called directly instead of via the VoucherKernel contract
+        await contractERC1155ERC721.setVoucherKernelAddress(
+          users.deployer.address
+        );
+
+        const tokenIdForMint = 123;
+
+        await expect(
+          contractERC1155ERC721.safeMint(
+            contractCashier.address,
+            tokenIdForMint
+          )
+        ).to.be.revertedWith(revertReasons.FN_SELECTOR_NOT_RECOGNIZED);
+      });
+
+      it('[NEGATIVE][safeMint] must fail: unauthorized minting ERC-721', async () => {
+        await expect(
+          contractERC1155ERC721.safeMint(users.attacker.address, 666)
+        ).to.be.revertedWith(revertReasons.UNAUTHORIZED_VK);
+      });
+
+      it('[NEGATIVE][safeMint] Should revert when to is a zero address', async () => {
+        // spoofing the VoucherKernel address here because the function is being called directly instead of via the VoucherKernel contract
+        await contractERC1155ERC721.setVoucherKernelAddress(
+          users.deployer.address
+        );
+
+        await expect(
+          contractERC1155ERC721.safeMint(constants.ZERO_ADDRESS, 666)
+        ).to.be.revertedWith(revertReasons.UNSPECIFIED_ADDRESS);
+      });
+
       it('[mint] Should mint a token', async () => {
         // spoofing the VoucherKernel address here because the function is being called directly instead of via the VoucherKernel contract
         await contractERC1155ERC721.setVoucherKernelAddress(
