@@ -1256,10 +1256,7 @@ describe('ERC1155ERC721', () => {
           users.deployer.address
         );
 
-        await contractERC1155ERC721.functions[fnSignatures.mint721](
-          expectedOwner,
-          tokenIdsForMint
-        );
+        await contractERC1155ERC721.safeMint(expectedOwner, tokenIdsForMint);
 
         const tokenOwner = await contractERC1155ERC721.ownerOf(tokenIdsForMint);
 
@@ -1285,7 +1282,7 @@ describe('ERC1155ERC721', () => {
           const tokenIdsForMint = [10, 20, 30, 40];
 
           for (const idForMint of tokenIdsForMint) {
-            await contractERC1155ERC721.functions[fnSignatures.mint721](
+            await contractERC1155ERC721.safeMint(
               users.other1.address,
               idForMint
             );
@@ -1621,7 +1618,7 @@ describe('ERC1155ERC721', () => {
         );
 
         const tokenIdForMint = 123;
-        await contractERC1155ERC721.functions[fnSignatures.mint721](
+        await contractERC1155ERC721.safeMint(
           users.deployer.address,
           tokenIdForMint
         );
@@ -1641,7 +1638,7 @@ describe('ERC1155ERC721', () => {
         );
 
         const tokenIdForMint = 123;
-        await contractERC1155ERC721.functions[fnSignatures.mint721](
+        await contractERC1155ERC721.safeMint(
           users.deployer.address,
           tokenIdForMint
         );

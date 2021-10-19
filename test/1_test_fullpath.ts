@@ -261,10 +261,7 @@ describe('Voucher tests', () => {
 
     it('must fail: unauthorized minting ERC-721', async () => {
       await expect(
-        contractERC1155ERC721.functions[fnSignatures.mint721](
-          users.attacker.address,
-          666
-        )
+        contractERC1155ERC721.safeMint(users.attacker.address, 666)
       ).to.be.revertedWith(revertReasons.UNAUTHORIZED_VK);
     });
   });
