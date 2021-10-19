@@ -288,7 +288,16 @@ interface IERC1155ERC721 is IERC165 {
     ) external;
 
     /**
+     * @notice Function to safely mint tokens.
+     * @dev ERC-721
+     * @param _to The address that will receive the minted tokens.
+     * @param _tokenId The token id to mint.
+     */
+    function safeMint(address _to, uint256 _tokenId) external;
+
+    /**
      * @notice Function to mint tokens.
+     * Usage of this method is discouraged, use `safeMint` whenever possible.
      * @dev ERC-721
      * @param _to The address that will receive the minted tokens.
      * @param _tokenId The token id to mint.
