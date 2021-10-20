@@ -10,7 +10,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      PK: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
+      PROTOCOL_DEPLOYER_PRIVATE_KEY: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
+      CC_TOKEN_DEPLOYER_PRIVATE_KEY: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
     name: build
     steps:
       - name: Checkout repository
@@ -31,7 +32,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      PK: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
+      PROTOCOL_DEPLOYER_PRIVATE_KEY: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
+      CC_TOKEN_DEPLOYER_PRIVATE_KEY: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
     name: test
     steps:
       - name: Checkout repository
@@ -45,15 +47,50 @@ jobs:
       - run: npm run contracts:compile
       - run: npm run tests:unit
 
-  security:
-    needs: test
+  slither:
     runs-on: ubuntu-latest
-    container:
-      image: trailofbits/eth-security-toolbox:latest
-      volumes:
-        - ${{ github.workspace }}:/share
+    env:
+      PROTOCOL_DEPLOYER_PRIVATE_KEY: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
+      CC_TOKEN_DEPLOYER_PRIVATE_KEY: 123456789abcdef123456789abcdef123456789abcdef123456789abcdef1234
     steps:
-      - name: slither
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+          check-latest: true
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install Slither
+        run: pip3 install slither-analyzer
+      - name: Prepare output
         run: |
-          cd /share
-          slither .
+          mkdir -p .github/slither-output
+
+      - name: Compile Contracts
+        run: |
+          npm install
+          npm run contracts:compile
+
+      - name: Run analysis
+        shell: bash
+        run: |
+          slither . --json-types compilations,console,detectors,printers,list-detectors,list-printers --exclude-dependencies --compile-force-framework hardhat >>.github/slither-output/slither_report.txt 2>&1 || true
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: slither-report
+          path: .github/slither-output/slither_report.txt
+
+      - name: Check status
+        shell: bash
+        run: |
+          FALSE_POSITIVE_WARNINGS=7
+          FOUND_WARNINGS=`grep "\d+ result" -Po .github/slither-output/slither_report.txt | sed 's/ result//g'`
+          echo "Slither Analysis $FOUND_WARNINGS issues"
+          if [[ $FOUND_WARNINGS -gt $FALSE_POSITIVE_WARNINGS ]]; then echo "$FOUND_WARNINGS issues exceeds limit" >&2; exit 1; fi
