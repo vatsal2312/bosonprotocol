@@ -320,21 +320,20 @@ describe('ERC1155ERC721', () => {
       describe('[supportsInterface]', () => {
         it('Should return True for supported _interfaceId', async () => {
           const supportedInterfaceIds = [
-            '0x01ffc9a7',
-            '0xd9b67a26',
-            '0x80ac58cd',
-            '0x5b5e139f',
-            '0x0e89341c',
+            '0x01ffc9a7', //ERC-165
+            // '0xd9b67a26', //ERC-1155
+            '0x80ac58cd', //ERC-721
+            '0x5b5e139f', //ERC-721 metadata extension
+            // '0x0e89341c', //ERC-1155 metadata extension
+            '0x5b5e139f', //ERC-721 metadata extension
           ];
 
-          const randomInterfaceId =
-            supportedInterfaceIds[
-              Math.floor(Math.random() * supportedInterfaceIds.length)
-            ];
+          for (const interfaceId of supportedInterfaceIds) {
+            assert.isTrue(
+              await contractERC1155ERC721.supportsInterface(interfaceId)
+            );
+          }
 
-          assert.isTrue(
-            await contractERC1155ERC721.supportsInterface(randomInterfaceId)
-          );
         });
 
         it('Should return False for un-supported _interfaceId', async () => {
