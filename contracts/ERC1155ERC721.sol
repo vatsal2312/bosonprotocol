@@ -496,10 +496,11 @@ contract ERC1155ERC721 is IERC1155ERC721, Ownable, ReentrancyGuard {
         return
             //check matching against ERC-165 identifiers
             _interfaceId == 0x01ffc9a7 || //ERC-165
-            _interfaceId == 0xd9b67a26 || //ERC-1155
+            // _interfaceId == 0xd9b67a26 || //ERC-1155
             _interfaceId == 0x80ac58cd || //ERC-721
-            _interfaceId == 0x5b5e139f || //ERC-721 metadata extension
-            _interfaceId == 0x0e89341c; //ERC-1155 metadata extension
+            // _interfaceId == 0x5b5e139f || //ERC-721 metadata extension
+            // _interfaceId == 0x0e89341c; //ERC-1155 metadata extension
+            _interfaceId == 0x5b5e139f; //ERC-721 metadata extension
     }
 
     // // // // // // // //
