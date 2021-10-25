@@ -38,6 +38,8 @@ contract Cashier is ICashier, UsingHelpers, ReentrancyGuard, Ownable, Pausable {
 
     event LogTokenContractSet(address _newTokenContract, address _triggeredBy);
 
+    event LogVoucherKernelSet(address _newVoucherKernel, address _triggeredBy);
+
     event LogWithdrawal(address _caller, address _payee, uint256 _payment);
 
     event LogAmountDistribution(
@@ -1119,5 +1121,21 @@ contract Cashier is ICashier, UsingHelpers, ReentrancyGuard, Ownable, Pausable {
         returns (uint256)
     {
         return escrowTokens[_token][_account];
+    }
+
+    /**
+     * @notice Set the address of the VoucherKernel contract
+     * @param _voucherKernelAddress   The address of the VoucherKernel contract
+     */
+    function setVoucherKernelAddress(address _voucherKernelAddress)
+        external
+        onlyOwner
+    {
+        require(_voucherKernelAddress != address(0), "UNSPECIFIED_ADDRESS");
+        require(!disasterState, "Owner has activated disaster state");
+
+        voucherKernel = _voucherKernelAddress;
+
+        emit LogVoucherKernelSet(_voucherKernelAddress, msg.sender);
     }
 }
