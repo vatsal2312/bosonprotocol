@@ -320,6 +320,55 @@ describe('Voucher tests', () => {
     });
   });
 
+  describe('Cashier contract', function () {
+    beforeEach(
+      'Deploy and create another instance of the contracts',
+      async () => {
+        await deployContracts2();
+      }
+    );
+
+    it('[setVoucherKernelAddress] Should be able to set a new Voucher Kernel address', async () => {
+      const expectedNewVoucherKernelAddress = contractVoucherKernel_2.address;
+      const tx = await contractCashier.setVoucherKernelAddress(
+        expectedNewVoucherKernelAddress
+      );
+
+      const txReceipt = await tx.wait();
+      eventUtils.assertEventEmitted(
+        txReceipt,
+        BosonRouter_Factory,
+        eventNames.LOG_VOUCHER_KERNEL_SET,
+        (ev) => {
+          assert.equal(ev._newVoucherKernel, expectedNewVoucherKernelAddress);
+          assert.equal(ev._triggeredBy, users.deployer.address);
+        }
+      );
+
+      expect(await contractCashier.getVoucherKernelAddress()).to.equal(
+        expectedNewVoucherKernelAddress,
+        'Not expected Voucher kernel address'
+      );
+    });
+
+    it('[NEGATIVE][setVoucherKernelAddress] should revert if called by an attacker', async () => {
+      const attackerInstance = contractCashier.connect(users.attacker.signer);
+      await expect(
+        attackerInstance.setVoucherKernelAddress(
+          contractVoucherKernel_2.address
+        )
+      ).to.be.revertedWith(revertReasons.UNAUTHORIZED_OWNER);
+    });
+
+    it('[NEGATIVE][setVoucherKernelAddress] should revert if disaster state is already set', async () => {
+      await contractBosonRouter.pause();
+      await contractCashier.setDisasterState();
+      await expect(
+        contractCashier.setVoucherKernelAddress(contractVoucherKernel_2.address)
+      ).to.be.revertedWith(revertReasons.DISASTER_STATE_IS_SET);
+    });
+  });
+
   describe('Contract Addresses Getters', function () {
     it('Should have set contract addresses properly for Boson Router', async () => {
       const registry = await contractBosonRouter.getTokenRegistryAddress();
